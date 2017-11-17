@@ -1,0 +1,9 @@
+@model Octokit.User
+
+
+@if(Model == null)
+    { <li><a asp-area="" asp-controller="Home" asp-action="Login" >Login</a></li> }
+else
+    {   <li><a asp-area="" asp-controller="Home" asp-action="About">@Model.Name</a></li>
+        <li><a asp-area="" asp-controller="Home" asp-action="SignOut">Sign Out</a></li>
+    }

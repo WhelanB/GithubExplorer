@@ -15,7 +15,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "WebApplication1": {
+    "GitHub": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
