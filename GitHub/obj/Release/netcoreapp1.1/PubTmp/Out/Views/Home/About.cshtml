@@ -1,0 +1,13 @@
+﻿@model Octokit.User
+
+@{
+    ViewData["Title"] = "";
+}
+
+<h2><b>@ViewBag.username</b></h2>
+<p>@Model.Bio</p>
+
+<p>My Repositories:</p>
+
+@foreach (string x in ViewBag.repos)
+    {<code>@x</code><br /><br />}
