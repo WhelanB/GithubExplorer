@@ -8,6 +8,10 @@
     <PackageTargetFallback>$(PackageTargetFallback);portable-net45+win8+wp8+wpa81;</PackageTargetFallback>
     <UserSecretsId>70dd64b7-cf2a-4f9d-9d32-aad7451f3ef1</UserSecretsId>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="wwwroot\Home\data\flare.csv" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="HangFire" Version="1.6.17" />
     <PackageReference Include="Hangfire.SqlServer" Version="1.6.17" />

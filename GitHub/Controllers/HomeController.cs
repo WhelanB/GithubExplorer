@@ -72,9 +72,9 @@ namespace WebApplication1.Controllers
                 client.Credentials = new Credentials(code);
                 var user = await client.User.Current();
                 var repositories = await client.Repository.GetAllForCurrent();
-                List<string> repos = new List<string>();
+                List<Octokit.Repository> repos = new List<Octokit.Repository>();
                 foreach (var y in repositories)
-                    repos.Add(y.Name);
+                    repos.Add(y);
                 ViewBag.username = user.Name;
                 ViewBag.icon = user.AvatarUrl;
                 ViewBag.repos = repos;
