@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Hangfire;
 
-namespace WebApplication1
+namespace GitHub
 {
     public class Startup
     {
@@ -27,14 +28,20 @@ namespace WebApplication1
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add framework services.
             services.AddMvc();
+            //use session for storing access token
             services.AddSession();
+
+            services.AddHangfire(config =>
+                config.UseSqlServerStorage("Data Source =.\\SQLEXPRESS; Initial Catalog = hangfireJobs; Integrated Security = True"));
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            app.UseHangfireDashboard();
+            app.UseHangfireServer();
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 

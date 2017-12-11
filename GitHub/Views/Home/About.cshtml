@@ -1,1 +1,31 @@
-﻿
+﻿@model Octokit.User
+
+@{
+    ViewData["Title"] = "";
+}
+<div class="text-center">
+    <img class="img-circle" src="@Model.AvatarUrl" />
+    <h2><b>@ViewBag.username</b></h2>
+    <p>@Model.Bio</p>
+</div>
+
+<br />
+<div class="container">
+    <div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-3">
+            <p>My Repositories 1:</p>
+
+            @foreach (string x in ViewBag.repos)
+              {<code>@x</code><br /><br />}
+        </div>
+        <div class="col-md-3">
+            <p>My Repositories:</p>
+
+            @foreach (string x in ViewBag.repos)
+               {<code>@x</code><br /><br />}
+       </div>
+
+        <div class="col-md-3"></div>
+    </div>
+</div>

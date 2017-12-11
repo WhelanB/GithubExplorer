@@ -4,18 +4,21 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Octokit;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Hangfire;
 
 namespace WebApplication1.Controllers
 {
     public class HomeController : Controller
     {
-        string clientId = "client-id";
-        string clientSecret = "client-secret";
+        string clientId = "92580a792a54fd85c43a";
+        string clientSecret = "79108751707875a56ef917b396f6f43f8dbcc626";
         GitHubClient client = new GitHubClient(new ProductHeaderValue("gitterbug"));
 
         public IActionResult Index()
         {
             ViewData["login"] = "/Home/Login";
+            BackgroundJob.Enqueue(() => Console.Write("hey"));
             return View();
         }
 
