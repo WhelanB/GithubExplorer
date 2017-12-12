@@ -31,7 +31,7 @@ namespace GitHub
             services.AddMvc();
             //use session for storing access token
             services.AddSession();
-
+            //Use HangFire
             services.AddHangfire(config =>
                 config.UseSqlServerStorage("Data Source =.\\SQLEXPRESS; Initial Catalog = hangfireJobs; Integrated Security = True"));
 
@@ -40,6 +40,7 @@ namespace GitHub
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            //Setup HangFire dahboard and Server (located at /hangfire)
             app.UseHangfireDashboard();
             app.UseHangfireServer();
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));

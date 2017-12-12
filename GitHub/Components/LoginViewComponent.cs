@@ -17,6 +17,7 @@ public class LoginViewComponent : ViewComponent
         string accesstoken = HttpContext.Session.GetString("token");
         if (!String.IsNullOrEmpty(accesstoken))
         {
+            //If we are authenticated, return the user which will render "SignOut"
             GitHubClient client = new GitHubClient(new ProductHeaderValue("gitterbug"));
             client.Credentials = new Credentials(accesstoken);
             var user = await client.User.Current();
@@ -24,6 +25,7 @@ public class LoginViewComponent : ViewComponent
         }
         else
         {
+            //Otherwise pass false through to frontend to render Login
             ViewBag.authenticated = false;
             return View(null);
         }
