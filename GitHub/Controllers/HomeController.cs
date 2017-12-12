@@ -6,6 +6,10 @@ using Octokit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Hangfire;
+using Newtonsoft.Json;
+using System.Dynamic;
+using GitHub.Controllers;
+using System.Net.Http;
 
 namespace WebApplication1.Controllers
 {
@@ -21,8 +25,58 @@ namespace WebApplication1.Controllers
         {
             ViewData["login"] = "/Home/Login";
             //Test HangFire job that is enqueued - appears in local dashboard
-            BackgroundJob.Enqueue(() => Console.Write("hey"));
+            //BackgroundJob.Enqueue(() => Console.Write("hey"));
             return View();
+        }
+
+        public async Task<IActionResult> Graph()
+        {
+            string code = HttpContext.Session.GetString("token");
+            client.Credentials = new Credentials(code);
+            var repositories = await client.Repository.GetAllForCurrent();
+            var user = await client.User.Current();
+            Graph json = new Graph(user.Name, user.AvatarUrl);
+            Dictionary<string, Graph> userLanguages = new Dictionary<string, Graph>();
+            foreach (Repository repo in repositories) {
+                if (!userLanguages.ContainsKey(repo.Language))
+                    userLanguages.Add(repo.Language, null);
+                userLanguages[repo.Language] = new Graph(repo.Language, "https://dummyimage.com/64x64/000/fff&text=" + repo.Language);
+            }
+            var followersJSON = await GetAsync("https://api.github.com/users/WhelanB/following");
+            
+            List<dynamic> followers = JsonConvert.DeserializeObject<List<dynamic>>(followersJSON);
+            foreach (dynamic f in followers)
+            {
+                var repos = await client.Repository.GetAllForUser((string)f.login);
+                foreach(Repository r in repos)
+                {
+                    if(r.Language != null && userLanguages.ContainsKey(r.Language))
+                        userLanguages[r.Language].AddChild(new Graph((string)f.login, (string)f.avatar_url));
+                }
+            }
+
+            foreach(Graph g in userLanguages.Values)
+            {
+                json.AddChild(g);
+            }
+            var response = JsonConvert.SerializeObject(json, Formatting.Indented,
+                            new JsonSerializerSettings
+                            {
+                                NullValueHandling = NullValueHandling.Ignore
+                            });
+            return Content(response);
+        }
+
+        public async Task<string> GetAsync(string uri)
+        {
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "Gitterbug");
+            var response = await httpClient.GetAsync(uri);
+
+            //response.EnsureSuccessStatusCode();
+
+            string content = await response.Content.ReadAsStringAsync();
+            return content;
         }
 
         //Used in OAuth flow to retrieve code in redirect
@@ -92,8 +146,6 @@ namespace WebApplication1.Controllers
                         languages.Add(y.Language, 0);
                 }
                 //Pass details to frontend through viewbag to be rendered by Razer
-                ViewBag.username = user.Name;
-                ViewBag.icon = user.AvatarUrl;
                 ViewBag.repos = repos;
                 ViewBag.languages = languages;
                 return View(user);
@@ -110,9 +162,6 @@ namespace WebApplication1.Controllers
             return View();
         }
 
-        public IActionResult Trending()
-        {
-            return View();
-        }
+
     }
 }

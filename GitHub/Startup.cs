@@ -8,13 +8,18 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Hangfire;
+using Octokit;
+using System.Net.Http;
+using Newtonsoft.Json;
 
 namespace GitHub
 {
     public class Startup
     {
+        private IHostingEnvironment _env;
         public Startup(IHostingEnvironment env)
         {
+            _env = env;
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -32,8 +37,8 @@ namespace GitHub
             //use session for storing access token
             services.AddSession();
             //Use HangFire
-            services.AddHangfire(config =>
-                config.UseSqlServerStorage("Data Source =.\\SQLEXPRESS; Initial Catalog = hangfireJobs; Integrated Security = True"));
+            //services.AddHangfire(config =>
+              // config.UseSqlServerStorage("Data Source =.\\SQLEXPRESS; Initial Catalog = hangfireJobs; Integrated Security = True"));
 
         }
 
@@ -41,8 +46,9 @@ namespace GitHub
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             //Setup HangFire dahboard and Server (located at /hangfire)
-            app.UseHangfireDashboard();
-            app.UseHangfireServer();
+            //app.UseHangfireDashboard();
+            //app.UseHangfireServer();
+            //RecurringJob.AddOrUpdate(() => Process(), Cron.Minutely);
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
@@ -66,5 +72,6 @@ namespace GitHub
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
         }
+   
     }
 }
