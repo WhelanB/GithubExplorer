@@ -23,7 +23,9 @@ namespace WebApplication1.Controllers
 
         public IActionResult Index()
         {
-            ViewData["login"] = "/Home/Login";
+            string code = HttpContext.Session.GetString("token");
+            if (String.IsNullOrEmpty(code))
+                return RedirectToAction("Error");
             //Test HangFire job that is enqueued - appears in local dashboard
             //BackgroundJob.Enqueue(() => Console.Write("hey"));
             return View();
@@ -38,11 +40,13 @@ namespace WebApplication1.Controllers
             Graph json = new Graph(user.Name, user.AvatarUrl);
             Dictionary<string, Graph> userLanguages = new Dictionary<string, Graph>();
             foreach (Repository repo in repositories) {
+                if (repo.Language == null)
+                    break;
                 if (!userLanguages.ContainsKey(repo.Language))
                     userLanguages.Add(repo.Language, null);
                 userLanguages[repo.Language] = new Graph(repo.Language, "https://dummyimage.com/64x64/000/fff&text=" + repo.Language);
             }
-            var followersJSON = await GetAsync("https://api.github.com/users/WhelanB/following");
+            var followersJSON = await GetAsync("https://api.github.com/users/"+ user.Login +"/followers");
             
             List<dynamic> followers = JsonConvert.DeserializeObject<List<dynamic>>(followersJSON);
             foreach (dynamic f in followers)
@@ -70,6 +74,7 @@ namespace WebApplication1.Controllers
         public async Task<string> GetAsync(string uri)
         {
             var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("Authorization", "token " + HttpContext.Session.GetString("token"));
             httpClient.DefaultRequestHeaders.Add("User-Agent", "Gitterbug");
             var response = await httpClient.GetAsync(uri);
 
@@ -140,15 +145,55 @@ namespace WebApplication1.Controllers
                 foreach (var y in repositories)
                 {
                     repos.Add(y);
-                    if (languages.ContainsKey(y.Language))
-                        languages[y.Language] = languages[y.Language] + 1;
+                    string language = y.Language;
+                    if (language == null)
+                        language = "Undefined";
+                    if (languages.ContainsKey(language))
+                        languages[language] = languages[language] + 1;
                     else
-                        languages.Add(y.Language, 0);
+                        languages.Add(language, 1);
                 }
                 //Pass details to frontend through viewbag to be rendered by Razer
                 ViewBag.repos = repos;
                 ViewBag.languages = languages;
                 return View(user);
+            }
+            catch (AuthorizationException)
+            {
+                //If we fail to auth, redirect to unauthorized page
+                return RedirectToAction("Error");
+            }
+        }
+
+        public async Task<IActionResult> Profile(string login)
+        {
+            try
+            {
+                string code = HttpContext.Session.GetString("token");
+                if (String.IsNullOrEmpty(code))
+                    return RedirectToAction("Error");
+                Dictionary<string, int> languages = new Dictionary<string, int>();
+                client.Credentials = new Credentials(code);
+                //Retrieve user details asynchronously
+                var user = await client.User.Get(login);
+                //Retrieve current user repos (including private) async
+                var repositories = await client.Repository.GetAllForUser(login);
+                List<Octokit.Repository> repos = new List<Octokit.Repository>();
+                foreach (var y in repositories)
+                {
+                    repos.Add(y);
+                    string language = y.Language;
+                    if (language == null)
+                        language = "Undefined";
+                    if (languages.ContainsKey(language))
+                        languages[language] = languages[language] + 1;
+                    else
+                        languages.Add(language, 1);
+                }
+                //Pass details to frontend through viewbag to be rendered by Razer
+                ViewBag.repos = repos;
+                ViewBag.languages = languages;
+                return View("About", user);
             }
             catch (AuthorizationException)
             {

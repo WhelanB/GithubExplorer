@@ -12,6 +12,7 @@
   <ItemGroup>
     <Content Include="wwwroot\Home\data\flare.csv" />
     <Content Include="wwwroot\Home\data\social.json" />
+    <Content Include="wwwroot\images\loading.gif" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="HangFire" Version="1.6.17" />

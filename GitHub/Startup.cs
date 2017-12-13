@@ -72,6 +72,38 @@ namespace GitHub
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
         }
-   
+        /**
+        public async Task<string> QueryTrends()
+        {
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", "Gitterbug");
+                var response =  await client.GetAsync("https://api.github.com/search/repositories?q=stars:>1&sort=stars&order=desc");
+
+                return await response.Content.ReadAsStringAsync();
+            }
+          
+        }
+
+        public TResult RunSync<TResult>(Func<Task<TResult>> func)
+        {
+            return Task.Run<Task<TResult>>(func).Unwrap().GetAwaiter().GetResult();
+        }
+
+        private string Trend()
+        {
+            return RunSync(() => QueryTrends());
+        }
+
+        public void Process()
+        {
+            var webRoot = _env.WebRootPath;
+            var file = System.IO.Path.Combine(webRoot, "Home/data/trends.json");
+            string response = Trend();
+            Dictionary<string, string> transform = new Dictionary<string, string>();
+            //parsed = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+            //transform["items"] = parsed["items"];
+            System.IO.File.WriteAllText(file, response);
+        }**/
     }
 }
