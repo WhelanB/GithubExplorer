@@ -24,10 +24,8 @@ namespace WebApplication1.Controllers
         public IActionResult Index()
         {
             string code = HttpContext.Session.GetString("token");
-            if (String.IsNullOrEmpty(code))
-                return RedirectToAction("Error");
-            //Test HangFire job that is enqueued - appears in local dashboard
-            //BackgroundJob.Enqueue(() => Console.Write("hey"));
+            if (!String.IsNullOrEmpty(code))
+                return View("Followers");
             return View();
         }
 
@@ -37,14 +35,14 @@ namespace WebApplication1.Controllers
             client.Credentials = new Credentials(code);
             var repositories = await client.Repository.GetAllForCurrent();
             var user = await client.User.Current();
-            Graph json = new Graph(user.Name, user.AvatarUrl);
+            Graph json = new Graph(user.Login, user.AvatarUrl, "/Home/About");
             Dictionary<string, Graph> userLanguages = new Dictionary<string, Graph>();
             foreach (Repository repo in repositories) {
                 if (repo.Language == null)
                     break;
                 if (!userLanguages.ContainsKey(repo.Language))
                     userLanguages.Add(repo.Language, null);
-                userLanguages[repo.Language] = new Graph(repo.Language, "https://dummyimage.com/64x64/000/fff&text=" + repo.Language);
+                userLanguages[repo.Language] = new Graph(repo.Language, "https://dummyimage.com/64x64/000/fff&text=" + repo.Language, "");
             }
             var followersJSON = await GetAsync("https://api.github.com/users/"+ user.Login +"/followers");
             
@@ -55,7 +53,7 @@ namespace WebApplication1.Controllers
                 foreach(Repository r in repos)
                 {
                     if(r.Language != null && userLanguages.ContainsKey(r.Language))
-                        userLanguages[r.Language].AddChild(new Graph((string)f.login, (string)f.avatar_url));
+                        userLanguages[r.Language].AddChild(new Graph((string)f.login, (string)f.avatar_url, "/Home/Profile?login=" + (string)f.login));
                 }
             }
 
@@ -97,7 +95,7 @@ namespace WebApplication1.Controllers
             var x = token.AccessToken;
             HttpContext.Session.SetString("token", x);
             client.Credentials = new Credentials(x);
-            return RedirectToAction("About");
+            return RedirectToAction("Profile");
         }
 
         public IActionResult SignOut()
@@ -128,7 +126,7 @@ namespace WebApplication1.Controllers
         }
 
 
-        public async Task<IActionResult> About()
+        public async Task<IActionResult> Profile(string username)
         {
             try
             {
@@ -138,9 +136,21 @@ namespace WebApplication1.Controllers
                 Dictionary<string, int> languages = new Dictionary<string, int>();
                 client.Credentials = new Credentials(code);
                 //Retrieve user details asynchronously
-                var user = await client.User.Current();
+                User user;
+                IReadOnlyList<Repository> repositories;
+                if (String.IsNullOrEmpty(username))
+                {
+                    user = await client.User.Current();
+                    repositories = await client.Repository.GetAllForCurrent();
+                }
+                else
+                {
+                    user = await client.User.Get(username);
+                    repositories = await client.Repository.GetAllForUser(username);
+                }
                 //Retrieve current user repos (including private) async
-                var repositories = await client.Repository.GetAllForCurrent();
+
+                
                 List<Octokit.Repository> repos = new List<Octokit.Repository>();
                 foreach (var y in repositories)
                 {
@@ -157,43 +167,6 @@ namespace WebApplication1.Controllers
                 ViewBag.repos = repos;
                 ViewBag.languages = languages;
                 return View(user);
-            }
-            catch (AuthorizationException)
-            {
-                //If we fail to auth, redirect to unauthorized page
-                return RedirectToAction("Error");
-            }
-        }
-
-        public async Task<IActionResult> Profile(string login)
-        {
-            try
-            {
-                string code = HttpContext.Session.GetString("token");
-                if (String.IsNullOrEmpty(code))
-                    return RedirectToAction("Error");
-                Dictionary<string, int> languages = new Dictionary<string, int>();
-                client.Credentials = new Credentials(code);
-                //Retrieve user details asynchronously
-                var user = await client.User.Get(login);
-                //Retrieve current user repos (including private) async
-                var repositories = await client.Repository.GetAllForUser(login);
-                List<Octokit.Repository> repos = new List<Octokit.Repository>();
-                foreach (var y in repositories)
-                {
-                    repos.Add(y);
-                    string language = y.Language;
-                    if (language == null)
-                        language = "Undefined";
-                    if (languages.ContainsKey(language))
-                        languages[language] = languages[language] + 1;
-                    else
-                        languages.Add(language, 1);
-                }
-                //Pass details to frontend through viewbag to be rendered by Razer
-                ViewBag.repos = repos;
-                ViewBag.languages = languages;
-                return View("About", user);
             }
             catch (AuthorizationException)
             {

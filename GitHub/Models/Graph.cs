@@ -9,11 +9,13 @@ namespace GitHub.Controllers
     {
         public string name;
         public string img;
+        public string url;
         public List<Graph> children;
-        public Graph(string n, string i)
+        public Graph(string n, string i, string u)
         {
             name = n;
             img = i;
+            url = u;
         }
 
         public void AddChild(Graph g)
