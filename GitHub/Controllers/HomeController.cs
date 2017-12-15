@@ -35,14 +35,14 @@ namespace WebApplication1.Controllers
             client.Credentials = new Credentials(code);
             var repositories = await client.Repository.GetAllForCurrent();
             var user = await client.User.Current();
-            Graph json = new Graph(user.Login, user.AvatarUrl, "/Home/About");
+            Graph json = new Graph(user.Login, user.AvatarUrl, "/Home/Profile");
             Dictionary<string, Graph> userLanguages = new Dictionary<string, Graph>();
             foreach (Repository repo in repositories) {
                 if (repo.Language == null)
                     break;
                 if (!userLanguages.ContainsKey(repo.Language))
                     userLanguages.Add(repo.Language, null);
-                userLanguages[repo.Language] = new Graph(repo.Language, "https://dummyimage.com/64x64/000/fff&text=" + repo.Language, "");
+                userLanguages[repo.Language] = new Graph(repo.Language, "https://dummyimage.com/64x64/000/fff&text=" + repo.Language, "javascript:void(0);");
             }
             var followersJSON = await GetAsync("https://api.github.com/users/"+ user.Login +"/followers");
             
@@ -53,7 +53,7 @@ namespace WebApplication1.Controllers
                 foreach(Repository r in repos)
                 {
                     if(r.Language != null && userLanguages.ContainsKey(r.Language))
-                        userLanguages[r.Language].AddChild(new Graph((string)f.login, (string)f.avatar_url, "/Home/Profile?login=" + (string)f.login));
+                        userLanguages[r.Language].AddChild(new Graph((string)f.login, (string)f.avatar_url, "/Home/Profile?username=" + (string)f.login));
                 }
             }
 

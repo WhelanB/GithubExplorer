@@ -132,7 +132,7 @@
 
                 .on('mouseenter', function (d) {
                     // select element in current context
-                    d3.select("h3").html("<a href=\"/Home/Profile?username=" + d.name + "\">" + d.name + "</a>");
+                    d3.select("h3").html("<a href=\"" + d.url + "\">" + d.name + "</a>");
                     /**d3.select(this)
                         .transition()
                         .attr("x", function (d) { return -60; })
