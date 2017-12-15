@@ -10,8 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="wwwroot\Home\data\flare.csv" />
-    <Content Include="wwwroot\Home\data\social.json" />
     <Content Include="wwwroot\images\loading.gif" />
   </ItemGroup>
   <ItemGroup>
